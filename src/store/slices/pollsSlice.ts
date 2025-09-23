@@ -16,10 +16,29 @@ const initialState: PollsState = {
   error: null,
 };
 
+type SupabasePollOption = {
+  id: string | number;
+  poll_id: string | number;
+  option_text?: string | null;
+  vote_count?: number | null;
+  position?: number | null;
+};
+
+type SupabasePoll = {
+  id: string | number;
+  title?: string | null;
+  description?: string | null;
+  creator_email?: string | null;
+  created_at?: string | null;
+  is_active?: boolean | null;
+  total_votes?: number | null;
+  poll_options?: SupabasePollOption[] | null;
+};
+
 // Helper to normalize a single poll object returned by Supabase
-function normalizePoll(raw: any): Poll {
-  const rawOptions: any[] = raw?.poll_options ?? [];
-  const options: PollOption[] = rawOptions.map((o: any) => ({
+function normalizePoll(raw: SupabasePoll): Poll {
+  const rawOptions: SupabasePollOption[] = raw?.poll_options ?? [];
+  const options: PollOption[] = rawOptions.map((o) => ({
     id: String(o.id),
     poll_id: String(o.poll_id),
     option_text: o.option_text ?? '',
@@ -34,13 +53,13 @@ function normalizePoll(raw: any): Poll {
     creator_email: raw.creator_email ?? undefined,
     created_at: raw.created_at ?? new Date().toISOString(),
     is_active: raw.is_active ?? true,
-    total_votes: Number(raw.total_votes ?? options.reduce((s, opt) => s + opt.vote_count, 0)),
+    total_votes:
+      raw.total_votes ?? options.reduce((s, opt) => s + opt.vote_count, 0),
     options,
   };
 }
 
 export const fetchPolls = createAsyncThunk('polls/fetch', async () => {
-  // Select polls with nested poll_options from Supabase
   const { data, error } = await supabase
     .from('polls')
     .select('*, poll_options(*)')
@@ -51,13 +70,17 @@ export const fetchPolls = createAsyncThunk('polls/fetch', async () => {
     throw error;
   }
 
-  // Normalize each poll so frontend always sees `options: PollOption[]`
-  return (data ?? []).map((p: any) => normalizePoll(p));
+  return (data as SupabasePoll[]).map((p) => normalizePoll(p));
 });
 
 export const createPoll = createAsyncThunk(
   'polls/create',
-  async (pollData: { title: string; description?: string; options: string[]; creatorEmail?: string }) => {
+  async (pollData: {
+    title: string;
+    description?: string;
+    options: string[];
+    creatorEmail?: string;
+  }) => {
     const { data: poll, error } = await supabase
       .from('polls')
       .insert({
@@ -70,8 +93,10 @@ export const createPoll = createAsyncThunk(
 
     if (error) throw error;
 
+    const inserted = poll as SupabasePoll;
+
     const optionsToInsert = pollData.options.map((text, idx) => ({
-      poll_id: poll.id,
+      poll_id: inserted.id,
       option_text: text,
       position: idx,
       vote_count: 0,
@@ -79,16 +104,15 @@ export const createPoll = createAsyncThunk(
 
     await supabase.from('poll_options').insert(optionsToInsert);
 
-    // Re-fetch the created poll with options (safe fresh shape)
     const { data: fresh, error: freshErr } = await supabase
       .from('polls')
       .select('*, poll_options(*)')
-      .eq('id', poll.id)
+      .eq('id', inserted.id)
       .single();
 
     if (freshErr) throw freshErr;
 
-    return normalizePoll(fresh);
+    return normalizePoll(fresh as SupabasePoll);
   }
 );
 
@@ -96,7 +120,10 @@ const pollsSlice = createSlice({
   name: 'polls',
   initialState,
   reducers: {
-    updateVoteCount: (state, action: PayloadAction<{ pollId: string; optionId: string }>) => {
+    updateVoteCount: (
+      state,
+      action: PayloadAction<{ pollId: string; optionId: string }>
+    ) => {
       const { pollId, optionId } = action.payload;
       const poll = state.polls.find((p) => p.id === pollId);
       if (!poll) return;
