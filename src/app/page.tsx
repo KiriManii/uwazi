@@ -1,103 +1,115 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useEffect } from 'react';
+import Link from 'next/link';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { fetchPolls } from '@/store/slices/pollsSlice';
+import PollCard from '@/components/polls/PollCard';
+
+export default function HomePage() {
+  const dispatch = useAppDispatch();
+  const { polls, loading } = useAppSelector((state) => state.polls);
+  
+  useEffect(() => {
+    dispatch(fetchPolls());
+  }, [dispatch]);
+  
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div>
+      {/* Hero Section with Psychological Triggers */}
+      <section className="py-20 text-center">
+        <h1 className="text-5xl font-bold text-gray-900 mb-6">
+          Transform African Governance with
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-secondary-600"> Data-Driven Insights</span>
+        </h1>
+        <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+          Join 10,000+ government officials, NGOs, and candidates using Uwazi to understand public opinion in real-time.
+        </p>
+        
+        {/* Scarcity Trigger */}
+        <div className="mb-8">
+          <span className="inline-block px-4 py-2 bg-yellow-50 text-yellow-800 rounded-full text-sm font-medium">
+            ⏰ Limited: Only 2 free polls per week
+          </span>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        
+        <Link href="/create" className="btn-primary text-lg px-8 py-4">
+          Create Your First Poll Free
+        </Link>
+        
+        {/* Social Proof */}
+        <div className="mt-8 flex justify-center items-center space-x-8 text-sm text-gray-500">
+          <span>✓ No account required</span>
+          <span>✓ Results in 60 seconds</span>
+          <span>✓ 100% Anonymous</span>
+        </div>
+      </section>
+      
+      {/* Recent Polls */}
+      <section className="py-12">
+        <h2 className="text-3xl font-bold text-gray-900 mb-8">Live Polls</h2>
+        {loading ? (
+          <div className="text-center py-12">Loading polls...</div>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {polls.slice(0, 6).map((poll) => (
+              <PollCard key={poll.id} poll={poll} />
+            ))}
+          </div>
+        )}
+      </section>
+      
+      {/* Pricing with Anchoring */}
+      <section className="py-20 bg-gray-50 rounded-2xl px-8 my-12">
+        <h2 className="text-3xl font-bold text-center mb-12">Choose Your Plan</h2>
+        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          {/* Free Tier */}
+          <div className="card text-center">
+            <h3 className="text-xl font-bold mb-2">Free</h3>
+            <p className="text-4xl font-bold mb-4">$0</p>
+            <ul className="space-y-2 mb-6 text-left">
+              <li>✓ 2 polls per week</li>
+              <li>✓ 25 responses per poll</li>
+              <li>✓ Basic charts</li>
+              <li>✓ Email results</li>
+            </ul>
+            <Link href="/create" className="btn-secondary block w-full">Start Free</Link>
+          </div>
+          
+          {/* Professional - Highlighted */}
+          <div className="card border-2 border-primary-600 relative">
+            <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-primary-600 text-white text-sm rounded-full">
+              Most Popular
+            </span>
+            <h3 className="text-xl font-bold mb-2">Professional</h3>
+            <p className="text-4xl font-bold mb-4">
+              $79 <span className="text-lg font-normal">one-time</span>
+            </p>
+            <ul className="space-y-2 mb-6 text-left">
+              <li>✓ 15 polls total</li>
+              <li>✓ 1,000 responses</li>
+              <li>✓ Advanced charts</li>
+              <li>✓ PDF exports</li>
+            </ul>
+            <button className="btn-primary block w-full">Get Professional</button>
+          </div>
+          
+          {/* Enterprise */}
+          <div className="card">
+            <h3 className="text-xl font-bold mb-2">Enterprise</h3>
+            <p className="text-4xl font-bold mb-4">
+              $45 <span className="text-lg font-normal">/user/mo</span>
+            </p>
+            <ul className="space-y-2 mb-6 text-left">
+              <li>✓ Unlimited polls</li>
+              <li>✓ AI insights</li>
+              <li>✓ Team features</li>
+              <li>✓ Priority support</li>
+            </ul>
+            <button className="btn-secondary block w-full">Contact Sales</button>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
