@@ -652,8 +652,6 @@ Apply to: Production, Preview, Development
 - **Main README:** This file
 - **Setup Guide:** `SUPABASE_SETUP.md` - Complete database setup instructions
 - **Testing:** `TESTING.md` - Comprehensive testing checklist
-- **Progress Report:** `uwazi_phase_4_combined_progress_report_build_session.md`
-- **Master Guide:** `uwazi-master-doc.md` - Complete implementation reference
 
 ---
 
