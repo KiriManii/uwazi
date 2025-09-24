@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import './globals.css';
 import { Inter } from 'next/font/google';
 import { Providers } from './Providers';
@@ -5,6 +6,43 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 
 const inter = Inter({ subsets: ['latin'] });
+
+export const metadata: Metadata = {
+  title: 'Uwazi - African Governance Polling Platform',
+  description: 'Transform African governance with data-driven insights. Create polls, gather opinions, and make informed decisions with real-time results.',
+  keywords: ['polling', 'governance', 'Africa', 'surveys', 'voting', 'public opinion', 'democracy'],
+  authors: [{ name: 'KiriManii', url: 'https://github.com/KiriManii' }],
+  openGraph: {
+    title: 'Uwazi - African Governance Polling',
+    description: 'Real-time polling platform for African governance transformation',
+    url: 'https://uwazi-polling.vercel.app',
+    siteName: 'Uwazi',
+    images: [
+      {
+        url: '/icon-512.png',
+        width: 512,
+        height: 512,
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Uwazi - African Governance Polling',
+    description: 'Transform governance with data-driven insights',
+    images: ['/icon-512.png'],
+  },
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
+};
 
 export default function RootLayout({
   children,
