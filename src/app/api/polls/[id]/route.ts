@@ -1,56 +1,59 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { NextRequest, NextResponse } from 'next/server'
+import { supabase } from '@/lib/supabase'
 
 interface SupabasePollOption {
-  id: string;
-  poll_id: string;
-  option_text: string | null;
-  vote_count: number | null;
-  position: number | null;
+  id: string
+  poll_id: string
+  option_text: string | null
+  vote_count: number | null
+  position: number | null
 }
 
 interface SupabasePoll {
-  id: string;
-  title: string | null;
-  description: string | null;
-  creator_email: string | null;
-  created_at: string | null;
-  is_active: boolean | null;
-  total_votes: number | null;
-  poll_options?: SupabasePollOption[] | null;
+  id: string
+  title: string | null
+  description: string | null
+  creator_email: string | null
+  created_at: string | null
+  is_active: boolean | null
+  total_votes: number | null
+  poll_options?: SupabasePollOption[] | null
 }
 
 interface SupabaseError {
-  message: string;
-  code?: string;
+  message: string
+  code?: string
 }
 
+// ✅ GET handler
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  req: NextRequest,
+  context: { params: { id: string } }
 ) {
   try {
+    const pollId = context.params.id
+
     const { data, error } = await supabase
       .from('polls')
-      .select(`
+      .select(
+        `
         *,
-        poll_options (
-          *
-        )
-      `)
-      .eq('id', params.id)
-      .single();
+        poll_options (*)
+      `
+      )
+      .eq('id', pollId)
+      .single()
 
     if (error) {
-      const supabaseError = error as SupabaseError;
+      const supabaseError = error as SupabaseError
       return NextResponse.json(
         { error: supabaseError.message || 'Poll not found' },
         { status: 404 }
-      );
+      )
     }
 
-    const poll = data as SupabasePoll;
-    const options = poll.poll_options || [];
+    const poll = data as SupabasePoll
+    const options = poll.poll_options || []
 
     const transformedPoll = {
       id: poll.id,
@@ -67,45 +70,42 @@ export async function GET(
         vote_count: option.vote_count || 0,
         position: option.position || 0,
       })),
-    };
+    }
 
-    return NextResponse.json(transformedPoll);
-  } catch (error) {
-    console.error('Get poll error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json(transformedPoll)
+  } catch (err) {
+    console.error('Get poll error:', err)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 
+// ✅ DELETE handler
 export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  req: NextRequest,
+  context: { params: { id: string } }
 ) {
   try {
+    const pollId = context.params.id
+
     const { error } = await supabase.rpc('delete_poll', {
-      poll_id: params.id,
-    });
+      poll_id: pollId,
+    })
 
     if (error) {
-      const supabaseError = error as SupabaseError;
-      console.error('Delete poll RPC error:', error);
+      const supabaseError = error as SupabaseError
+      console.error('Delete poll RPC error:', error)
       return NextResponse.json(
         { error: supabaseError.message || 'Failed to delete poll' },
         { status: 500 }
-      );
+      )
     }
 
     return NextResponse.json({
       success: true,
       message: 'Poll deleted successfully',
-    });
-  } catch (error) {
-    console.error('Delete poll error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    })
+  } catch (err) {
+    console.error('Delete poll error:', err)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
