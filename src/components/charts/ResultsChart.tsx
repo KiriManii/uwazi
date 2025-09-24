@@ -36,12 +36,12 @@ export default function ResultsChart({ poll, type = 'bar' }: ResultsChartProps) 
         label: 'Votes',
         data: poll.options.map(o => o.vote_count),
         backgroundColor: [
-          '#2563EB', // Primary blue
-          '#0D9488', // Secondary teal
-          '#F59E0B', // Amber
-          '#EF4444', // Red
-          '#8B5CF6', // Purple
-          '#10B981', // Green
+          '#2563EB',
+          '#0D9488',
+          '#F59E0B',
+          '#EF4444',
+          '#8B5CF6',
+          '#10B981',
         ],
         borderColor: '#ffffff',
         borderWidth: 2,
@@ -49,7 +49,7 @@ export default function ResultsChart({ poll, type = 'bar' }: ResultsChartProps) 
     ],
   };
 
-  const options = {
+  const baseOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
@@ -77,18 +77,29 @@ export default function ResultsChart({ poll, type = 'bar' }: ResultsChartProps) 
         },
       },
     },
+  };
+
+  const pieOptions = {
+    ...baseOptions,
     animation: {
       animateScale: true,
       animateRotate: true,
     },
   };
 
+  const barOptions = {
+    ...baseOptions,
+    animation: {
+      duration: 750,
+    },
+  };
+
   return (
     <div className="h-[400px] w-full">
       {type === 'pie' ? (
-        <Pie data={chartData} options={options} />
+        <Pie data={chartData} options={pieOptions} />
       ) : (
-        <Bar data={chartData} options={options} />
+        <Bar data={chartData} options={barOptions} />
       )}
     </div>
   );

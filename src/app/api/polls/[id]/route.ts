@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
+// app/api/polls/[id]/route.ts
+import { NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
 interface SupabasePollOption {
@@ -25,23 +26,21 @@ interface SupabaseError {
   code?: string
 }
 
-// ✅ GET handler
+/**
+ * GET /api/polls/[id]
+ */
 export async function GET(
-  req: NextRequest,
-  context: { params: { id: string } }
+  req: Request,
+  // In Next.js 15 (App Router) params are passed as a Promise and must be awaited.
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const pollId = context.params.id
+    const { id } = await params
 
     const { data, error } = await supabase
       .from('polls')
-      .select(
-        `
-        *,
-        poll_options (*)
-      `
-      )
-      .eq('id', pollId)
+      .select(`*, poll_options (*)`)
+      .eq('id', id)
       .single()
 
     if (error) {
@@ -79,16 +78,18 @@ export async function GET(
   }
 }
 
-// ✅ DELETE handler
+/**
+ * DELETE /api/polls/[id]
+ */
 export async function DELETE(
-  req: NextRequest,
-  context: { params: { id: string } }
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const pollId = context.params.id
+    const { id } = await params
 
     const { error } = await supabase.rpc('delete_poll', {
-      poll_id: pollId,
+      poll_id: id,
     })
 
     if (error) {
