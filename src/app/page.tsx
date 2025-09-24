@@ -1,50 +1,54 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { fetchPolls } from '@/store/slices/pollsSlice';
 import PollCard from '@/components/polls/PollCard';
+import ContactModal from '@/components/ui/ContactModal';
 
 export default function HomePage() {
   const dispatch = useAppDispatch();
   const { polls, loading } = useAppSelector((state) => state.polls);
-  
+  const [showContactModal, setShowContactModal] = useState<'professional' | 'enterprise' | null>(null);
+
   useEffect(() => {
     dispatch(fetchPolls());
   }, [dispatch]);
-  
+
   return (
     <div>
-      {/* Hero Section with Psychological Triggers */}
+      {/* Hero Section */}
       <section className="py-20 text-center">
         <h1 className="text-5xl font-bold text-gray-900 mb-6">
           Transform African Governance with
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-secondary-600"> Data-Driven Insights</span>
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-secondary-600">
+            {' '}
+            Data-Driven Insights
+          </span>
         </h1>
         <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-          Join 10,000+ government officials, NGOs, and candidates using Uwazi to understand public opinion in real-time.
+          Join 10,000+ government officials, NGOs, and candidates using Uwazi to understand
+          public opinion in real-time.
         </p>
-        
-        {/* Scarcity Trigger */}
+
         <div className="mb-8">
           <span className="inline-block px-4 py-2 bg-yellow-50 text-yellow-800 rounded-full text-sm font-medium">
             ⏰ Limited: Only 2 free polls per week
           </span>
         </div>
-        
+
         <Link href="/create" className="btn-primary text-lg px-8 py-4">
           Create Your First Poll Free
         </Link>
-        
-        {/* Social Proof */}
+
         <div className="mt-8 flex justify-center items-center space-x-8 text-sm text-gray-500">
           <span>✓ No account required</span>
           <span>✓ Results in 60 seconds</span>
           <span>✓ 100% Anonymous</span>
         </div>
       </section>
-      
+
       {/* Recent Polls */}
       <section className="py-12">
         <h2 className="text-3xl font-bold text-gray-900 mb-8">Live Polls</h2>
@@ -58,12 +62,11 @@ export default function HomePage() {
           </div>
         )}
       </section>
-      
-      {/* Pricing with Anchoring */}
+
+      {/* Pricing */}
       <section className="py-20 bg-gray-50 rounded-2xl px-8 my-12">
         <h2 className="text-3xl font-bold text-center mb-12">Choose Your Plan</h2>
         <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          {/* Free Tier */}
           <div className="card text-center">
             <h3 className="text-xl font-bold mb-2">Free</h3>
             <p className="text-4xl font-bold mb-4">$0</p>
@@ -73,10 +76,11 @@ export default function HomePage() {
               <li>✓ Basic charts</li>
               <li>✓ Email results</li>
             </ul>
-            <Link href="/create" className="btn-secondary block w-full">Start Free</Link>
+            <Link href="/create" className="btn-secondary block w-full">
+              Start Free
+            </Link>
           </div>
-          
-          {/* Professional - Highlighted */}
+
           <div className="card border-2 border-primary-600 relative">
             <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-primary-600 text-white text-sm rounded-full">
               Most Popular
@@ -91,10 +95,14 @@ export default function HomePage() {
               <li>✓ Advanced charts</li>
               <li>✓ PDF exports</li>
             </ul>
-            <button className="btn-primary block w-full">Get Professional</button>
+            <button
+              onClick={() => setShowContactModal('professional')}
+              className="btn-primary block w-full"
+            >
+              Get Professional
+            </button>
           </div>
-          
-          {/* Enterprise */}
+
           <div className="card">
             <h3 className="text-xl font-bold mb-2">Enterprise</h3>
             <p className="text-4xl font-bold mb-4">
@@ -106,10 +114,23 @@ export default function HomePage() {
               <li>✓ Team features</li>
               <li>✓ Priority support</li>
             </ul>
-            <button className="btn-secondary block w-full">Contact Sales</button>
+            <button
+              onClick={() => setShowContactModal('enterprise')}
+              className="btn-secondary block w-full"
+            >
+              Contact Sales
+            </button>
           </div>
         </div>
       </section>
+
+      {/* Contact Modals */}
+      {showContactModal && (
+        <ContactModal
+          plan={showContactModal}
+          onClose={() => setShowContactModal(null)}
+        />
+      )}
     </div>
   );
 }

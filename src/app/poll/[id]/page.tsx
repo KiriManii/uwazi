@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Poll } from '@/types';
 import VoteInterface from '@/components/polls/VoteInterface';
+import LiveCounter from '@/components/charts/LiveCounter';
 
 export default function VotePage() {
   const params = useParams();
@@ -12,27 +13,33 @@ export default function VotePage() {
   const [poll, setPoll] = useState<Poll | null>(null);
   const [hasVoted, setHasVoted] = useState(false);
   const [loading, setLoading] = useState(true);
-  
+  const [isVoting, setIsVoting] = useState(false);
+
   useEffect(() => {
     loadPoll();
     checkVoteStatus();
-    
-    // Real-time subscription for live updates
+
     const channel = supabase
       .channel(`poll-${params.id}`)
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'votes', filter: `poll_id=eq.${params.id}` },
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'votes',
+          filter: `poll_id=eq.${params.id}`,
+        },
         () => {
-          loadPoll(); // Reload poll data when votes change
+          loadPoll();
         }
       )
       .subscribe();
-    
+
     return () => {
       supabase.removeChannel(channel);
     };
   }, [params.id]);
-  
+
   const loadPoll = async () => {
     const { data, error } = await supabase
       .from('polls')
@@ -44,9 +51,8 @@ export default function VotePage() {
       `)
       .eq('id', params.id)
       .single();
-    
+
     if (data) {
-      // Transform data to match our interface
       const transformedPoll = {
         ...data,
         options: data.poll_options || [],
@@ -55,108 +61,101 @@ export default function VotePage() {
     }
     setLoading(false);
   };
-  
+
   const checkVoteStatus = () => {
     const voted = localStorage.getItem(`voted_${params.id}`);
     setHasVoted(!!voted);
   };
-  
+
   const handleVote = async (optionId: string) => {
+    setIsVoting(true);
+    
     try {
-      // Submit vote to API
-      const response = await fetch('/api/votes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          poll_id: params.id,
-          option_id: optionId,
-        }),
+      const { error } = await supabase.from('votes').insert({
+        poll_id: params.id,
+        option_id: optionId,
+        ip_address: '127.0.0.1',
       });
-      
-      if (response.ok) {
-        // Mark as voted locally
+
+      if (!error) {
+        await supabase.rpc('increment_vote_count', {
+          option_id: optionId,
+          poll_id: params.id,
+        });
+
         localStorage.setItem(`voted_${params.id}`, 'true');
         setHasVoted(true);
         
-        // Redirect to results
-        router.push(`/results/${params.id}`);
+        setTimeout(() => {
+          router.push(`/results/${params.id}`);
+        }, 1000);
       } else {
-        const error = await response.json();
-        alert(error.error || 'Failed to submit vote');
+        console.error('Vote error:', error);
+        if (error.code === '23505') {
+          alert('You have already voted on this poll!');
+          setHasVoted(true);
+        }
       }
     } catch (error) {
-      console.error('Vote submission error:', error);
-      alert('Failed to submit vote');
+      console.error('Vote submission failed:', error);
+    } finally {
+      setIsVoting(false);
     }
   };
-  
+
   if (loading) {
     return (
-      <div className="text-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-        <p className="mt-4 text-gray-600">Loading poll...</p>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading poll...</p>
+        </div>
       </div>
     );
   }
-  
+
   if (!poll) {
     return (
       <div className="text-center py-12">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">Poll Not Found</h1>
-        <p className="text-gray-600 mb-6">The poll you're looking for doesn't exist or has been removed.</p>
-        <button 
-          onClick={() => router.push('/')}
-          className="btn-primary"
-        >
-          Back to Home
-        </button>
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">Poll Not Found</h2>
+        <p className="text-gray-600">This poll may have been deleted or doesn't exist.</p>
       </div>
     );
   }
-  
+
   return (
     <div className="max-w-2xl mx-auto">
       <h1 className="text-3xl font-bold mb-4">{poll.title}</h1>
-      {poll.description && (
-        <p className="text-gray-600 mb-8">{poll.description}</p>
-      )}
-      
-      {hasVoted ? (
-        <div className="text-center py-12 bg-gray-50 rounded-lg">
-          <div className="mb-4">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-              </svg>
-            </div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Thank you for voting!</h2>
-            <p className="text-gray-600 mb-6">Your vote has been recorded anonymously.</p>
-          </div>
-          <button
-            onClick={() => router.push(`/results/${params.id}`)}
-            className="btn-primary"
-          >
-            View Results
-          </button>
+      {poll.description && <p className="text-gray-600 mb-8">{poll.description}</p>}
+
+      {hasVoted || isVoting ? (
+        <div className="text-center py-12 bg-gradient-to-br from-primary-50 to-secondary-50 rounded-lg">
+          {isVoting ? (
+            <>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+              <p className="text-lg font-medium">Submitting your vote...</p>
+            </>
+          ) : (
+            <>
+              <div className="text-6xl mb-4">✓</div>
+              <p className="text-lg font-medium mb-4">Thank you for voting!</p>
+              <button
+                onClick={() => router.push(`/results/${params.id}`)}
+                className="btn-primary"
+              >
+                View Results
+              </button>
+            </>
+          )}
         </div>
       ) : (
-        <div>
-          <div className="mb-6">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">Choose your option:</h2>
-            <VoteInterface poll={poll} onVote={handleVote} />
-          </div>
+        <>
+          <VoteInterface poll={poll} onVote={handleVote} />
           
-          {/* Live vote counter */}
-          <div className="mt-8 text-center">
-            <div className="inline-flex items-center space-x-2 text-sm text-gray-500">
-              <span className="flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-green-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-              </span>
-              <span>{poll.total_votes} people have voted</span>
-            </div>
+          <div className="mt-8">
+            <LiveCounter value={poll.total_votes} label="people have voted" />
           </div>
-        </div>
+        </>
       )}
     </div>
   );
