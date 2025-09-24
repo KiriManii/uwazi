@@ -12,6 +12,7 @@ export const metadata: Metadata = {
   description: 'Transform African governance with data-driven insights. Create polls, gather opinions, and make informed decisions with real-time results.',
   keywords: ['polling', 'governance', 'Africa', 'surveys', 'voting', 'public opinion', 'democracy'],
   authors: [{ name: 'KiriManii', url: 'https://github.com/KiriManii' }],
+  metadataBase: new URL('https://uwazi-polling.vercel.app'),
   openGraph: {
     title: 'Uwazi - African Governance Polling',
     description: 'Real-time polling platform for African governance transformation',
@@ -34,13 +35,8 @@ export const metadata: Metadata = {
     images: ['/icon-512.png'],
   },
   icons: {
-    icon: [
-      { url: '/favicon.ico', sizes: 'any' },
-      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
-    ],
-    apple: [
-      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
-    ],
+    icon: '/icon-192.png',
+    apple: '/icon-192.png',
   },
 };
 
