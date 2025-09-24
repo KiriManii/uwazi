@@ -291,35 +291,130 @@ uwazi/
 
 ## 🗑️ Admin Operations
 
-### Deleting Polls
+### Poll Management & Deletion
 
-**Option 1: Admin UI** (Recommended)
-```
-Visit /my-polls → Click Delete → Confirm
-```
+#### Method 1: Via Admin UI (Recommended for Individual Polls)
 
-**Option 2: API Call**
-```bash
-curl -X DELETE "http://localhost:3000/api/polls/[poll-id]"
-```
+**Access:** https://uwazi-polling.vercel.app/my-polls
 
-**Option 3: Direct SQL** (Emergency only)
+**Steps:**
+1. Navigate to `/my-polls` page
+2. Click the delete button (trash icon) on any poll card
+3. Confirm deletion in the dialog
+4. Poll and all related data (votes, options) are removed
+
+**Current Status:** UI deletion is configured but may not work due to RLS policy restrictions. Use Method 2 or 3 instead.
+
+---
+
+#### Method 2: Direct SQL Deletion (Most Reliable)
+
+**Location:** Supabase Dashboard → SQL Editor
+
+**Step 1 - View All Polls:**
 ```sql
-BEGIN;
-DELETE FROM votes WHERE option_id IN (SELECT id FROM poll_options WHERE poll_id = '[poll-id]');
-DELETE FROM poll_options WHERE poll_id = '[poll-id]';
-DELETE FROM polls WHERE id = '[poll-id]';
-COMMIT;
+SELECT id, title, created_at, total_votes 
+FROM polls 
+ORDER BY created_at DESC;
 ```
+This shows all polls with their IDs. Copy the ID of polls you want to delete.
 
-**Verify deletion:**
+**Step 2 - Delete Single Poll:**
 ```sql
-SELECT COUNT(*) FROM polls WHERE id = '[poll-id]';
-SELECT COUNT(*) FROM poll_options WHERE poll_id = '[poll-id]';
--- Both should return 0
+-- Replace 'poll-id-here' with the actual UUID
+DELETE FROM polls WHERE id = 'poll-id-here';
 ```
 
-**Note:** The `delete_poll` RPC function handles cascade deletion automatically. Always prefer the API route or admin UI over direct SQL.
+**Step 3 - Delete Multiple Polls:**
+```sql
+DELETE FROM polls WHERE id IN (
+  'first-poll-id',
+  'second-poll-id',
+  'third-poll-id'
+);
+```
+
+**Step 4 - Verify Deletion:**
+```sql
+SELECT id, title FROM polls ORDER BY created_at ASC;
+```
+
+**What Happens:**
+- CASCADE foreign keys automatically delete related `poll_options` and `votes`
+- Changes appear instantly on live site
+- Refresh browser (Ctrl+Shift+R) to see updates
+
+---
+
+#### Method 3: Bulk Operations
+
+**Delete All Test Polls (Keep Only Originals):**
+```sql
+-- Keeps the 2 oldest polls, deletes everything else
+DELETE FROM polls 
+WHERE id NOT IN (
+  SELECT id FROM polls ORDER BY created_at ASC LIMIT 2
+);
+```
+
+**Delete All Polls Created After Specific Date:**
+```sql
+DELETE FROM polls 
+WHERE created_at > '2025-09-24 00:00:00';
+```
+
+**Delete Polls by Creator Email:**
+```sql
+DELETE FROM polls 
+WHERE creator_email = 'test@example.com';
+```
+
+**Delete Polls with Zero Votes:**
+```sql
+DELETE FROM polls 
+WHERE total_votes = 0;
+```
+
+---
+
+#### Method 4: Using RPC Function (Advanced)
+
+**In Supabase SQL Editor:**
+```sql
+-- Call the delete_poll function
+SELECT delete_poll('poll-id-here');
+```
+
+**Note:** The RPC function requires `SECURITY DEFINER` to bypass RLS:
+```sql
+CREATE OR REPLACE FUNCTION delete_poll(p_poll_id UUID)
+RETURNS void 
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $
+BEGIN
+  DELETE FROM polls WHERE id = p_poll_id;
+END;
+$;
+```
+
+---
+
+#### Important Notes
+
+**Cascade Deletion:** All methods automatically remove:
+- Poll options (via `ON DELETE CASCADE`)
+- All votes (via `ON DELETE CASCADE`)
+- No orphaned data remains
+
+**Instant Updates:** Changes reflect immediately on:
+- Homepage poll listings
+- `/my-polls` management page
+- Individual poll pages (return 404)
+
+**Recovery:** Deletions are permanent. No undo functionality exists. Always verify poll ID before deletion.
+
+**Best Practice:** Use Method 2 (Direct SQL) for reliable, immediate results during development and testing.
 
 ---
 
