@@ -2,7 +2,9 @@
 
 A streamlined polling platform for African governance that converts anonymous users into leads while providing valuable insights. Built with Next.js, Redux, TypeScript, and Chart.js for 100% assignment compliance.
 
-![Uwazi Platform](https://img.shields.io/badge/status-production--ready-green) ![Next.js](https://img.shields.io/badge/Next.js-15.5.3-black) ![TypeScript](https://img.shields.io/badge/TypeScript-5.3.3-blue) ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.4.0-38bdf8)
+![Uwazi Platform](https://img.shields.io/badge/status-live-success) ![Next.js](https://img.shields.io/badge/Next.js-15.5.3-black) ![TypeScript](https://img.shields.io/badge/TypeScript-5.3.3-blue) ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.4.0-38bdf8)
+
+**🌐 Live Demo:** [https://uwazi-polling.vercel.app](https://uwazi-polling.vercel.app)
 
 ---
 
@@ -525,64 +527,58 @@ curl http://localhost:3000/api/polls
 - [x] Footer pages (Privacy, Terms, Contact, Coming Soon)
 - [x] PWA configuration
 
-### Phase 5: Production 🚧 IN PROGRESS
+### Phase 5: Production ✅ COMPLETE
 - [x] PWA icons created
-- [ ] Production build testing
-- [ ] Vercel deployment
-- [ ] Custom domain setup
+- [x] Production build successful
+- [x] Deployed to Vercel
+- [x] Live at https://uwazi-polling.vercel.app
+- [ ] Custom domain (optional)
 - [ ] Analytics integration
 - [ ] Monitoring setup
 
-**Current Completion: ~95%**
+**Current Status: 🟢 LIVE IN PRODUCTION**
 
 ---
 
 ## 🚀 Deployment
 
-### Vercel Deployment
+### Live Production Instance
 
-**Method 1: CLI** (Recommended)
-```bash
-# Install Vercel CLI
-npm i -g vercel
+**URL:** [https://uwazi-polling.vercel.app](https://uwazi-polling.vercel.app)  
+**Status:** ✅ Live and operational  
+**Platform:** Vercel  
+**Last Updated:** September 24, 2025
 
-# Login
-vercel login
+### Deployment Configuration
 
-# Deploy
-vercel --prod
-```
+**Environment Variables (Vercel Dashboard):**
+- `NEXT_PUBLIC_SUPABASE_URL` - Supabase project URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase anonymous key
+- `NEXT_PUBLIC_APP_URL` - Production URL (https://uwazi-polling.vercel.app)
 
-**Method 2: GitHub Integration**
-1. Push to GitHub: `git push origin main`
-2. Visit [vercel.com](https://vercel.com)
-3. Click "New Project"
-4. Import repository
-5. Configure build settings:
-   - Framework: Next.js
-   - Build Command: `npm run build`
-   - Output Directory: `.next`
+**Build Settings:**
+- Framework: Next.js
+- Build Command: `npm run build`
+- Output Directory: `.next`
+- Node Version: 18.x
 
-### Environment Variables (Vercel Dashboard)
+### Known Deployment Issues & Solutions
 
-Add these in Project Settings → Environment Variables:
+**Issue:** "Environment variable references secret that does not exist"  
+**Solution:** Remove `env` section from `vercel.json` - use dashboard environment variables only
 
-```
-NEXT_PUBLIC_SUPABASE_URL = https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY = your-anon-key
-NEXT_PUBLIC_APP_URL = https://uwazi.vercel.app
-```
+**Issue:** Build fails with TypeScript errors  
+**Solution:** Run `npx tsc --noEmit` locally before deploying to catch errors early
 
-Apply to: Production, Preview, Development
+**Issue:** Charts not displaying in production  
+**Solution:** Separate animation options for Bar vs Pie charts (already fixed)
 
-### Post-Deployment
+### Redeployment
 
-1. Test all features on live URL
-2. Run Lighthouse audit
-3. Verify PWA installability
-4. Check real-time updates work
-5. Test exports (PDF/CSV)
-6. Monitor error logs in Vercel dashboard
+To trigger a new deployment:
+1. Push changes to `main` branch
+2. Vercel automatically deploys
+3. Or manually redeploy from Vercel dashboard → Deployments → Redeploy
 
 ---
 
@@ -719,6 +715,7 @@ Then visit [http://localhost:3000](http://localhost:3000) and start polling!
 ---
 
 **Built with ❤️ for African governance transformation**  
+**Live Demo:** [https://uwazi-polling.vercel.app](https://uwazi-polling.vercel.app)  
 **Last Updated:** September 24, 2025  
-**Version:** 1.0.0 (Production Ready)  
-**Status:** 🟢 Ready for deployment
+**Version:** 1.0.0  
+**Status:** 🟢 Live in Production
